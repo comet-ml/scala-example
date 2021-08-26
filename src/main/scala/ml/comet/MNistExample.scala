@@ -49,7 +49,7 @@ class MNistExample {
   private val batchSizePerWorker: Int = 16
 
   @Parameter(names = Array("-numEpochs"), description = "Number of epochs for training")
-  private val numEpochs: Int = 2
+  private val numEpochs: Int = 15
 
   experiment.logParameter("useSparkLocal", useSparkLocal);
   experiment.logParameter("batchSizePerWorker", batchSizePerWorker);
