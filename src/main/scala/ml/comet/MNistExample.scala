@@ -27,7 +27,7 @@ import java.io.File
 object MNistExample {
 
   lazy val log = LoggerFactory.getLogger(classOf[MNistExample])
-  val experiment = OnlineExperimentImpl.builder().build(); //update defaults.conf
+  val experiment = OnlineExperimentImpl.builder().build(); //update application.conf
   experiment.setInterceptStdout()
 
   @throws[Exception]

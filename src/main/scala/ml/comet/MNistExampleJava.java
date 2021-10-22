@@ -44,7 +44,7 @@ public class MNistExampleJava {
     private static Logger log = LoggerFactory.getLogger(MNistExampleJava.class);
 
     public static void main(String[] args) throws Exception {
-        OnlineExperiment experiment = OnlineExperimentImpl.builder().build(); //update defaults.conf
+        OnlineExperiment experiment = OnlineExperimentImpl.builder().build(); //update application.conf
         experiment.setInterceptStdout();
 
         System.out.println("experiment live at: " + experiment.getExperimentLink());
