@@ -1,11 +1,10 @@
-package ml.comet.example;
+package ml.comet.examples;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import ml.comet.experiment.ExperimentBuilder;
 import ml.comet.experiment.OnlineExperiment;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
-import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -13,7 +12,6 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.api.BaseTrainingListener;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -41,6 +39,14 @@ import java.io.IOException;
  * for this layer is also initialized using Xavier initialization. The activation function for this
  * layer is a softmax, which normalizes all the 10 outputs such that the normalized sums
  * add up to 1. The highest of these normalized values is picked as the predicted class.
+ *
+ * <p>To run from command line execute the following at the root of this module:
+ * <pre>
+ * COMET_API_KEY=your_api_key \
+ * COMET_WORKSPACE_NAME=your_workspace \
+ * COMET_PROJECT_NAME=your_project_name \
+ * mvn exec:java -Dexec.mainClass="ml.comet.examples.MNistExampleJava"
+ * </pre>
  */
 public final class MNistExampleJava {
     private static final Logger log = LoggerFactory.getLogger(MNistExampleJava.class);
@@ -166,34 +172,5 @@ public final class MNistExampleJava {
         experiment.logHtml(eval.getConfusionMatrix().toHTML(), false);
 
         log.info("****************MNIST Experiment Example finished********************");
-    }
-
-    /**
-     * The listener to be invoked at each iteration of model training.
-     */
-    static class StepScoreListener extends BaseTrainingListener {
-        private final OnlineExperiment experiment;
-        private int printIterations;
-        private final Logger log;
-
-        StepScoreListener(OnlineExperiment experiment, int printIterations, Logger log) {
-            this.experiment = experiment;
-            this.printIterations = printIterations;
-            this.log = log;
-        }
-
-        @Override
-        public void iterationDone(Model model, int iteration, int epoch) {
-            if (printIterations <= 0) {
-                printIterations = 1;
-            }
-            // print score and log metric
-            if (iteration % printIterations == 0) {
-                double result = model.score();
-                log.info("Score at step/epoch {}/{}  is {} ", iteration, epoch, result);
-                experiment.setEpoch(epoch);
-                this.experiment.logMetric("score", model.score(), iteration);
-            }
-        }
     }
 }
