@@ -9,48 +9,53 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.version>2.11.6</scala.version>
-    <dl4j.version>0.7.2</dl4j.version>
+    <scala.version>2.13.8</scala.version>
+    <dl4j-master.version>1.0.0-M1.1</dl4j-master.version>
+    <nd4j.backend>nd4j-native</nd4j.backend>
     <scala.compat.version>2.11</scala.compat.version>
     <spec2.version>4.2.0</spec2.version>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.4.4</version>
+      <groupId>ml.comet</groupId>
+      <artifactId>comet-java-client</artifactId>
+      <version>1.1.11</version>
     </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-scala_2.11</artifactId>
-      <version>2.4.4</version>
-    </dependency>
+
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.nd4j</groupId>
-      <artifactId>nd4j-native-platform</artifactId>
-      <version>${dl4j.version}</version>
+      <artifactId>${nd4j.backend}</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-datasets</artifactId>
+      <version>${dl4j-master.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-core</artifactId>
+      <version>${dl4j-master.version}</version>
     </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
       <artifactId>dl4j-spark_2.11</artifactId>
-      <version>${dl4j.version}</version>
+      <version>${dl4j-master.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
-      <version>1.27</version>
+      <version>1.82</version>
     </dependency>
-    <dependency>
-      <groupId>ml.comet</groupId>
-      <artifactId>comet-java-client</artifactId>
-      <version>1.1.2</version>
-    </dependency>
+
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_2.11</artifactId>
