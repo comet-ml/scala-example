@@ -5,12 +5,12 @@ import ml.comet.experiment.{ExperimentBuilder, OnlineExperiment}
 import org.apache.spark.SparkConf
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator
-import org.deeplearning4j.nn.api.{Model, OptimizationAlgorithm}
+import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration
 import org.deeplearning4j.nn.conf.layers.{DenseLayer, OutputLayer}
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.nn.weights.WeightInit
-import org.deeplearning4j.optimize.api.BaseTrainingListener
+import org.deeplearning4j.optimize.api.TrainingListener
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener
 import org.deeplearning4j.spark.impl.multilayer.SparkDl4jMultiLayer
 import org.deeplearning4j.spark.impl.paramavg.ParameterAveragingTrainingMaster
 import org.nd4j.evaluation.classification.Evaluation
@@ -21,44 +21,60 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.File
+import java.util.Collections
 import scala.collection.mutable
-
+import scala.collection.mutable.ArrayBuffer
 /**
  * Train a simple, small MLP on MNIST data using Spark with Comet.
+ *
+ * <p>To run from command line execute the following at the root of this module:
+ * <pre>
+ * COMET_API_KEY=your_api_key \
+ * COMET_WORKSPACE_NAME=your_workspace \
+ * COMET_PROJECT_NAME=your_project_name \
+ * mvn exec:java -Dexec.mainClass="ml.comet.examples.MNistExampleSpark"
+ * </pre>
  */
 object MNistExampleSpark {
 
   lazy val log: Logger = LoggerFactory.getLogger(classOf[MNistExampleSpark])
-  val experiment: OnlineExperiment = ExperimentBuilder.OnlineExperiment.interceptStdout.build; //update application.conf
-  experiment.setInterceptStdout()
 
   @throws[Exception]
   def main(args: Array[String]): Unit = {
-    new MNistExampleSpark().entryPoint(args)
+    val experiment = ExperimentBuilder.OnlineExperiment.interceptStdout.build
+    try {
+      new MNistExampleSpark().runMnistExperiment(args, experiment)
+    } catch {
+      case e: Exception => log.error("failed to run experiment", e)
+    } finally {
+      // make sure to close experiment at the end
+      experiment.close()
+    }
+    sys.exit(0)
   }
 }
 
 class MNistExampleSpark {
 
-  val experiment: OnlineExperiment = MNistExampleSpark.experiment
+  @Parameter(names = Array("--useSparkLocal"), description = "Use spark local (helper for testing/running without spark submit)", arity = 1)
+  var useSparkLocal: Boolean = true
 
-  @Parameter(names = Array("-useSparkLocal"), description = "Use spark local (helper for testing/running without spark submit)", arity = 1)
-  private val useSparkLocal: Boolean = true
+  @Parameter(names = Array("--batchSizePerWorker"), description = "Number of examples to fit each worker with")
+  var batchSizePerWorker: Int = 16
 
-  @Parameter(names = Array("-batchSizePerWorker"), description = "Number of examples to fit each worker with")
-  private val batchSizePerWorker: Int = 16
+  @Parameter(names = Array("--numEpochs"), description = "Number of epochs for training")
+  var numEpochs: Int = 10
 
-  @Parameter(names = Array("-numEpochs"), description = "Number of epochs for training")
-  private val numEpochs: Int = 2
-
-  experiment.logParameter("useSparkLocal", useSparkLocal)
-  experiment.logParameter("batchSizePerWorker", batchSizePerWorker)
-  experiment.logParameter("numEpochs", numEpochs)
 
   @throws[Exception]
-  protected def entryPoint(args: Array[String]): Unit = {
+  protected def runMnistExperiment(args: Array[String], experiment: OnlineExperiment): Unit = {
+    experiment.setInterceptStdout()
 
     parseCommandLineArgs(args)
+
+    experiment.logParameter("useSparkLocal", useSparkLocal)
+    experiment.logParameter("batchSizePerWorker", batchSizePerWorker)
+    experiment.logParameter("numEpochs", numEpochs)
 
     val rngSeed = 123 // random number seed for reproducibility
 
@@ -68,7 +84,7 @@ class MNistExampleSpark {
     if (useSparkLocal) {
       sparkConf.setMaster("local[*]")
     }
-    sparkConf.setAppName("DL4J Spark Example")
+    sparkConf.setAppName("Comet MNIST Experiment with Spark (Scala)")
     sparkConf.getAll.foreach(x => experiment.logOther(String.valueOf(x._1), x._2))
     val sc = new JavaSparkContext(sparkConf)
 
@@ -76,7 +92,7 @@ class MNistExampleSpark {
     // This isn't a good approach in general - but is simple to use for this example
     val iterTrain = new MnistDataSetIterator(batchSizePerWorker, true, rngSeed)
     val iterTest = new MnistDataSetIterator(batchSizePerWorker, false, rngSeed)
-    val trainDataList = mutable.ArrayBuffer.empty[DataSet]
+    val trainDataList: ArrayBuffer[DataSet] = mutable.ArrayBuffer.empty[DataSet]
     val testDataList = mutable.ArrayBuffer.empty[DataSet]
     while (iterTrain.hasNext) {
       trainDataList += iterTrain.next
@@ -86,8 +102,8 @@ class MNistExampleSpark {
       testDataList += iterTest.next
     }
 
-    val trainData: JavaRDD[DataSet] = sc.parallelize(trainDataList)
-    val testData: JavaRDD[DataSet] = sc.parallelize(testDataList)
+    val trainData: JavaRDD[DataSet] = sc.parallelize(trainDataList.toList)
+    val testData: JavaRDD[DataSet] = sc.parallelize(testDataList.toList)
 
     // Create network model configuration
     //
@@ -148,11 +164,8 @@ class MNistExampleSpark {
 
     experiment.logGraph(conf.toJson)
 
-    // Create model and convert it into Spark model
+    // Create Spark model
     //
-    val model = new MultiLayerNetwork(conf)
-    model.init()
-    model.setListeners(new StepScoreListener(experiment, 1, MNistExampleSpark.log))
 
     // Configuration for Spark training, see:
     // https://deeplearning4j.konduit.ai/spark/tutorials/dl4j-on-spark-quickstart#parameter-averaging-implementation
@@ -162,15 +175,20 @@ class MNistExampleSpark {
       .batchSizePerWorker(batchSizePerWorker)
       .build
 
-    logSparkTrainConfig(tm)
+    logSparkTrainConfig(tm, experiment)
 
-    val sparkModel = new SparkDl4jMultiLayer(sc, model, tm)
+    val sparkModel = new SparkDl4jMultiLayer(sc, conf, tm)
     sparkModel.setCollectTrainingStats(true)
+    val listener = new ScoreIterationListener(10)
+    sparkModel.setListeners(
+      Collections.singletonList[TrainingListener](listener))
 
     MNistExampleSpark.log.info("Training model....")
 
-    for (_ <- 0 until numEpochs) {
+    for (i <- 0 until numEpochs) {
       sparkModel.fit(trainData)
+      experiment.logMetric("score", sparkModel.getScore, i)
+      MNistExampleSpark.log.info("Completed Epoch {}", i)
     }
 
     MNistExampleSpark.log.info("Evaluating model....")
@@ -183,12 +201,11 @@ class MNistExampleSpark {
     // Delete the temp training files, now that we are done with them
     tm.deleteTempFiles(sc)
 
-    MNistExampleSpark.log.info("****************MNIST Experiment Example finished********************")
-
-    sys.exit(0)
+    MNistExampleSpark.log.info("**************** MNIST Experiment Example finished ********************")
+    MNistExampleSpark.log.info("Experiment data published at: {}", experiment.getExperimentLink.get())
   }
 
-  private def logSparkTrainConfig(tm: ParameterAveragingTrainingMaster): Unit = {
+  private def logSparkTrainConfig(tm: ParameterAveragingTrainingMaster, experiment: OnlineExperiment): Unit = {
     import java.io.PrintWriter
     val fileName = "/tmp/sprkTrainConfig.json"
     new PrintWriter(fileName) {

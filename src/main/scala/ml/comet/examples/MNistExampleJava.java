@@ -2,6 +2,7 @@ package ml.comet.examples;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import lombok.extern.slf4j.Slf4j;
 import ml.comet.experiment.ExperimentBuilder;
 import ml.comet.experiment.OnlineExperiment;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
@@ -17,8 +18,6 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -48,13 +47,14 @@ import java.io.IOException;
  * mvn exec:java -Dexec.mainClass="ml.comet.examples.MNistExampleJava"
  * </pre>
  */
+@Slf4j
 public final class MNistExampleJava {
-    private static final Logger log = LoggerFactory.getLogger(MNistExampleJava.class);
+
     /**
      * The number of epochs to perform.
      */
     @Parameter(names = {"--epochs", "-e"}, description = "number of epochs to perform")
-    int numEpochs = 2;
+    int numEpochs = 10;
 
     /**
      * The experiment entry point.
@@ -154,7 +154,7 @@ public final class MNistExampleJava {
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
         model.init();
         //print the score with every 1 iteration
-        model.setListeners(new StepScoreListener(experiment, 1, log));
+        model.setListeners(new ExperimentScoreIterationListener(experiment, 1, log));
 
         // Get the train dataset iterator
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize, true, rngSeed);
@@ -171,6 +171,6 @@ public final class MNistExampleJava {
 
         experiment.logHtml(eval.getConfusionMatrix().toHTML(), false);
 
-        log.info("****************MNIST Experiment Example finished********************");
+        log.info("**************** MNIST Experiment Example finished ********************");
     }
 }

@@ -8,12 +8,12 @@ import org.slf4j.Logger;
 /**
  * The listener to be invoked at each iteration of model training.
  */
-public class StepScoreListener extends BaseTrainingListener {
+public class ExperimentScoreIterationListener extends BaseTrainingListener {
     private final OnlineExperiment experiment;
     private int printIterations;
     private final Logger log;
 
-    StepScoreListener(OnlineExperiment experiment, int printIterations, Logger log) {
+    ExperimentScoreIterationListener(OnlineExperiment experiment, int printIterations, Logger log) {
         this.experiment = experiment;
         this.printIterations = printIterations;
         this.log = log;
@@ -29,7 +29,7 @@ public class StepScoreListener extends BaseTrainingListener {
             double result = model.score();
             log.info("Score at step/epoch {}/{}  is {} ", iteration, epoch, result);
             experiment.setEpoch(epoch);
-            this.experiment.logMetric("score", model.score(), iteration);
+            experiment.logMetric("score", model.score(), iteration);
         }
     }
 }
