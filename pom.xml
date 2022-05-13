@@ -9,10 +9,10 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.version>2.13.8</scala.version>
+    <scala.version>2.11.12</scala.version>
     <dl4j-master.version>1.0.0-M1.1</dl4j-master.version>
     <nd4j.backend>nd4j-native</nd4j.backend>
-    <scala.compat.version>2.13.8</scala.compat.version>
+    <scala.compat.version>2.11.12</scala.compat.version>
     <spec2.version>4.2.0</spec2.version>
   </properties>
 
