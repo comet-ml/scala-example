@@ -1,6 +1,7 @@
 package ml.comet.examples
 
 import com.beust.jcommander.{JCommander, Parameter, ParameterException}
+import ml.comet.experiment.builder.OnlineExperimentBuilder
 import ml.comet.experiment.{ExperimentBuilder, OnlineExperiment}
 import org.apache.spark.SparkConf
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
@@ -41,7 +42,8 @@ object MNistExampleSpark {
 
   @throws[Exception]
   def main(args: Array[String]): Unit = {
-    val experiment = ExperimentBuilder.OnlineExperiment.interceptStdout.build
+    val experiment = ExperimentBuilder.OnlineExperiment.withApiKey("bla").withProjectName("the-project").build();
+
     try {
       new MNistExampleSpark().runMnistExperiment(args, experiment)
     } catch {
