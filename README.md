@@ -33,14 +33,14 @@ Next, we describe all of them.
 
 ### Environment variables
 
-The configuration can be done using the following environment variables which you should set
+The configuration can be done using the following environment variables that you should set
 before running the Comet experiment:
 
-* **COMET_API_KEY** - the Comet API key you got from you cabinet
+* **COMET_API_KEY** - the Comet API key you got from your Comet cabinet
 * **COMET_WORKSPACE_NAME** - the name of workspace where your experiments will be saved at Comet.ml
 * **COMET_PROJECT_NAME** - the name of project within workspace for your experiments
 
-You can set mentioned environment variables via command when running experiment. 
+You can set mentioned environment variables via command line when running experiment. 
 We discuss this method later.
 
 ### Configuration file
@@ -70,7 +70,18 @@ The following code snippet demonstrate how to do this:
 ```text
 val experiment = ExperimentBuilder.OnlineExperiment
       .interceptStdout
-      .withExistingExperimentKey("XXXX")
+      .withWorkspace("my-team")
+      .withProjectName("java-sdk")
+      .withApiKey("XXXX")
+      .build
+```
+
+or 
+
+```text
+val experiment: OnlineExperiment = ExperimentBuilder.OnlineExperiment
+      .interceptStdout
+      .withApiKey("XXXX").asInstanceOf[OnlineExperimentBuilder] // need to have explicit type casting here
       .withWorkspace("my-team")
       .withProjectName("java-sdk")
       .build
@@ -85,11 +96,13 @@ We provide two examples of running the classic MNIST experiment:
 * Using Deeplearning4j on Spark and Scala
 * Using Deeplearning4j and Java
 
+Next, we discuss how to ru each of them.
+
 ## Scala with Deeplearning4j on Spark
 
 The source code of this experiment available at [MNistExampleSpark](./src/main/scala/ml/comet/examples/MNistExampleSpark.scala)
 
-You can run the experiment with following command from your terminal application of choice.
+You can run the experiment with the following command using your favourite terminal application.
 
 ```text
 COMET_API_KEY=your_api_key \
@@ -99,17 +112,17 @@ mvn package exec:java -Dexec.mainClass="ml.comet.examples.MNistExampleSpark" -De
 ```
 
 Where:
-* **numEpochs** - allows you to define number of training epochs [default: 10]
-* **useSparkLocal** - allows to use spark local (helper for testing/running without spark submit) [default: true]
+* **numEpochs** - allows you to define number of training epochs [**default: 10**]
+* **useSparkLocal** - allows to use spark local (helper for testing/running without spark submit) [**default: true**]
 
-Make sure to provide correct values for the environment variables.
+Make sure to provide correct values of the environment variables.
 
-### Java with Deeplearning4j
+## Java with Deeplearning4j
 
 As reference, we also provide Java implementation of the MNIST experiment with source code available 
 at [MNistExampleJava](./src/main/scala/ml/comet/examples/MNistExampleJava.java)
 
-You can run the experiment with following command from your terminal application of choice.
+You can run the experiment with the following command.
 
 ```text
 COMET_API_KEY=your_api_key \
@@ -119,9 +132,9 @@ mvn exec:java -Dexec.mainClass="ml.comet.examples.MNistExampleJava" -Dexec.args=
 ```
 
 Where:
-* **epochs** - allows you to define number of training epochs [default: 10]
+* **epochs** - allows you to define the number of training epochs [default: 10]
 
-Make sure to provide correct values for the environment variables.
+Make sure to provide correct values of the environment variables.
 
 # References
 
