@@ -79,7 +79,7 @@ val experiment = ExperimentBuilder.OnlineExperiment
 or 
 
 ```text
-val experiment: OnlineExperiment = ExperimentBuilder.OnlineExperiment
+val experiment = ExperimentBuilder.OnlineExperiment
       .interceptStdout
       .withApiKey("XXXX").asInstanceOf[OnlineExperimentBuilder] // need to have explicit type casting here
       .withWorkspace("my-team")
