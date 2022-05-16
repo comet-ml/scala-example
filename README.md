@@ -96,7 +96,7 @@ We provide two examples of running the classic MNIST experiment:
 * Using Deeplearning4j on Spark and Scala
 * Using Deeplearning4j and Java
 
-Next, we discuss how to ru each of them.
+Next, we discuss how to run each of them.
 
 ## Scala with Deeplearning4j on Spark
 
